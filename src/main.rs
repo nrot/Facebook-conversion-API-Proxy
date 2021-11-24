@@ -32,6 +32,8 @@ async fn main() -> std::io::Result<()> {
 
     println!("Server start");
 
+    dotenv().ok();
+
     let cpus = env::var("CPU_WORKERS")
         .expect("CPU_WORKERS must be set in env")
         .parse::<usize>()

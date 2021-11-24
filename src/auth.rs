@@ -3,11 +3,11 @@ use std::task::{Context, Poll};
 
 use sqlx::{Pool, Sqlite};
 
-use actix_web::dev::{Service, Transform};
-use actix_web::{dev::ServiceRequest, dev::ServiceResponse, web, Error, HttpResponse};
-use actix_web::http::StatusCode;
+use actix_service::{Service, Transform};
+use actix_web::dev::{MessageBody, Response};
+use actix_web::{dev::ServiceRequest, dev::ServiceResponse, web, Error, http, error};
 use futures::future::{ok, Ready};
-use futures::Future;
+use futures::{Future, FutureExt};
 
 // There are two steps in middleware processing.
 // 1. Middleware initialization, middleware factory gets called with
@@ -26,13 +26,11 @@ impl TokenAuthInit {
 // Middleware factory is `Transform` trait from actix-service crate
 // `S` - type of the next service
 // `B` - type of response's body
-impl<S, B> Transform<S> for TokenAuthInit
+impl<S: 'static + Clone, B> Transform<S, ServiceRequest> for TokenAuthInit
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-    S::Future: 'static,
-    B: 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    B: MessageBody + 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type InitError = ();
@@ -47,40 +45,39 @@ where
     }
 }
 
-pub struct TokenAuth<S: Service> {
+pub struct TokenAuth<S: Clone> {
     service: S,
     database: Pool<Sqlite>,
 }
 
-impl<S, B> Service for TokenAuth<S>
+impl<S: 'static + Clone, B> Service<ServiceRequest> for TokenAuth<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
-    S::Future: 'static,
-    B: 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> ,
+    B: MessageBody,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(cx)
     }
 
-    fn call(&mut self, req: ServiceRequest) -> Self::Future {
+    fn call(&self, req: ServiceRequest) -> Self::Future {
         println!("Hi from start. You requested: {}", req.path());
 
-        return Box::pin(async {
-            Err(actix_web::Error::from(HttpResponse::Ok().status(StatusCode::UNAUTHORIZED).body("Unauth")))
-        });
+        // return Box::pin(async {
+        //     Err(actix_web::Error::from(error::InternalError::new("", http::StatusCode::UNAUTHORIZED)))
+        // });
 
-        let fut = self.service.call(req);
+        let srv = self.service.clone();
 
-        Box::pin(async move {
+        async move {
+            let fut = srv.call(req);
             let res = fut.await?;
 
             println!("Hi from response");
             Ok(res)
-        })
+        }.boxed_local()
     }
 }
