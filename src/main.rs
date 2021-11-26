@@ -1,20 +1,11 @@
-use actix_web::HttpMessage;
+#[macro_use] extern crate rocket;
+
 use dotenv::dotenv;
 use env_logger;
-use futures::executor::block_on;
-use futures::future::Either;
+
 use log::LevelFilter;
 use sqlx::sqlite::SqlitePoolOptions;
 use std::{env, thread};
-
-use actix_web::dev::Service;
-use actix_web::error;
-use actix_web::{
-    dev::ServiceRequest, get, middleware, web, App, HttpResponse, HttpServer, Responder,
-};
-use actix_web_httpauth::extractors::basic::BasicAuth;
-use actix_web_httpauth::middleware::HttpAuthentication;
-use futures::future::FutureExt;
 
 use sqlx::{sqlite, Connection, SqlitePool};
 
@@ -26,7 +17,7 @@ async fn index() -> impl Responder {
     HttpResponse::Ok().body("")
 }
 
-#[actix_web::main]
+#[launch]
 async fn main() -> std::io::Result<()> {
     dbgs!("Debug server");
 
