@@ -25,7 +25,7 @@ impl<'r> FromRequest<'r> for ApiKey{
     type Error = ApiKeyError;
 
     async fn from_request(req: &'r Request<'_>)-> Outcome<Self, Self::Error>{
-        let db = req.guard::<Pool<Sqlite>>().await;
+        //let db = req.guard::<Pool<Sqlite>>().await;
         Outcome::Success(ApiKey{
             User: "Name".into(),
             Token: "Token".into()

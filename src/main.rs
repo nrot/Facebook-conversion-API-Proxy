@@ -8,8 +8,6 @@ use std::{env, thread};
 
 use rocket::State;
 use sqlx::{sqlite, Connection, Pool, Sqlite, SqlitePool};
-use rocket::request::{FromRequest, Outcome, Request};
-use rocket_sync_db_pools::{Poolable, database};
 
 mod api;
 mod auth;
@@ -52,10 +50,6 @@ async fn main() {
     {
         Ok(c) => c,
         Err(e) => panic!("Error by connect db: {}", e),
-    };
-
-    let get_db = move |_: & Request<'_>|{
-        Outcome::Success(sqlite_connection.clone())
     };
 
 
