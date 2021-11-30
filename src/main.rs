@@ -4,14 +4,15 @@ extern crate rocket;
 use dotenv::dotenv;
 
 use sqlx::sqlite::SqlitePoolOptions;
-use std::{env, thread};
+use std::{env, thread, str};
+use std::io::prelude::*;
+use std::fs::File;
 
 use rocket::State;
 use sqlx::{sqlite, Connection, Pool, Sqlite, SqlitePool};
 
 mod api;
 mod auth;
-mod database;
 
 #[get("/")]
 async fn index(pool: &State<Pool<Sqlite>>) -> String {
@@ -52,8 +53,21 @@ async fn main() {
         Err(e) => panic!("Error by connect db: {}", e),
     };
 
+    let mut create_sql_f = File::open("sql/create.sql").expect("Can`t open file with database struct");
+    let mut buff = Vec::new();
+    match create_sql_f.read_to_end(&mut buff) {
+        Ok(_)=>{},
+        Err(e)=>panic!("Error by reading file: {}", e)
+    };
+    let create_sql = match str::from_utf8(&buff){
+        Ok(s)=>s,
+        Err(e) => panic!("Error by encoding file as utf-8: {}", e)
+    };
 
-    rocket::build()
+    let tmp_db = sqlite_connection.clone();
+    sqlx::query(create_sql).execute(&tmp_db).await.expect("Can`t update DB struct");
+
+    let _ = rocket::build()
         .manage(sqlite_connection)
         .mount("/", routes![index])
         .launch()

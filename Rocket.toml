@@ -19,6 +19,3 @@ port = 80
 secret_key = "hPRYyVRiMyxpw5sBB1XeCMN1kFsDCqKvBi2QJxBVHQk="
 workers = 8
 log_level = "normal"
-
-[global.databases]
-sqlite_logs = { url = "sqlite::memory:" }

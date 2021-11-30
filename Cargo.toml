@@ -1,9 +1,9 @@
 [package]
 name = "FacebookConversionAPIProxy"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
-include = ["sql/"]
+include = ["sql/", "empty.db"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -13,8 +13,3 @@ rand = "0.8"
 dotenv = "0.15.0"
 sqlx = {version = "0.5", features = ["runtime-actix-rustls", "sqlite", "macros", "migrate", "json"]}
 rocket = "0.5.0-rc.1"
-
-[dependencies.rocket_sync_db_pools]
-version = "0.1.0-rc.1"
-default-features = false
-features = []
