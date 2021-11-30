@@ -2,17 +2,18 @@
 extern crate rocket;
 
 use dotenv::dotenv;
-use env_logger;
 
-use log::LevelFilter;
 use sqlx::sqlite::SqlitePoolOptions;
 use std::{env, thread};
 
 use rocket::State;
-use sqlx::{sqlite, Connection, SqlitePool, Pool, Sqlite};
+use sqlx::{sqlite, Connection, Pool, Sqlite, SqlitePool};
+use rocket::request::{FromRequest, Outcome, Request};
+use rocket_sync_db_pools::{Poolable, database};
 
 mod api;
 mod auth;
+mod database;
 
 #[get("/")]
 async fn index(pool: &State<Pool<Sqlite>>) -> String {
@@ -26,29 +27,6 @@ async fn main() {
     println!("Server start");
 
     dotenv().ok();
-
-    let log_level = match env::var("LOG_LEVEL") {
-        Ok(lvl) => match lvl.to_uppercase().trim() {
-            "OFF" => LevelFilter::Off,
-            "ERROR" => LevelFilter::Error,
-            "WARN" => LevelFilter::Warn,
-            "INFO" => LevelFilter::Info,
-            "DEBUG" => LevelFilter::Debug,
-            "TRACE" => LevelFilter::Trace,
-            "" => LevelFilter::Info,
-            _ => panic!("LOG_LEVEL must be OFF, ERROR, WARN, INFO, DEBUG, TRACE"),
-        },
-        Err(_) => LevelFilter::Info,
-    };
-
-    let _ = env_logger::builder()
-        .parse_default_env()
-        .filter_level(if cfg!(debug_assertions) {
-            LevelFilter::Debug
-        } else {
-            log_level
-        })
-        .try_init();
 
     let db_url = env::var("SQLITE_URL").expect("SQLITE_URL must be set in env");
 
@@ -76,5 +54,14 @@ async fn main() {
         Err(e) => panic!("Error by connect db: {}", e),
     };
 
-    rocket::build().manage(sqlite_connection).mount("/", routes![index]).launch().await;
+    let get_db = move |_: & Request<'_>|{
+        Outcome::Success(sqlite_connection.clone())
+    };
+
+
+    rocket::build()
+        .manage(sqlite_connection)
+        .mount("/", routes![index])
+        .launch()
+        .await;
 }
