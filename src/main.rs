@@ -13,6 +13,7 @@ use sqlx::{sqlite, Connection, Pool, Sqlite, SqlitePool};
 
 mod api;
 mod auth;
+mod handlers;
 
 #[get("/")]
 async fn index(pool: &State<Pool<Sqlite>>) -> String {
@@ -69,7 +70,7 @@ async fn main() {
 
     let _ = rocket::build()
         .manage(sqlite_connection)
-        .mount("/", routes![index])
+        .mount("/", routes![index, handlers::fb_proxy])
         .launch()
         .await;
 }

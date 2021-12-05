@@ -6,6 +6,7 @@ cli_colors = true
 
 ## set only when compiled in debug mode, i.e, `cargo build`
 [debug]
+address = "127.0.0.1"
 port = 8000
 ## only the `json` key from `default` will be overridden; `forms` will remain
 limits = { json = "10MiB" }

@@ -6,6 +6,7 @@ use sqlx::{Database, FromRow, Pool, Sqlite};
 
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::http::Status;
+use log;
 
 
 #[derive(Debug, sqlx::FromRow)]
@@ -31,14 +32,16 @@ impl<'r> FromRequest<'r> for ApiKey{
             None => panic!("DB Pool<Sqlite> must be set as managed")
         };
         let token =  req.headers().get_one("Authorization").unwrap_or("");
-        match sqlx::query_as::<_, ApiKey>("").bind(token).fetch_one(db).await {
+        match sqlx::query_as::<_, ApiKey>("SELECT * FROM Token WHERE Token = ?").bind(token).fetch_one(db).await {
             Ok(k)=>{
+                log::debug!("Result: {:?}", k);
                 Outcome::Success(ApiKey{
                     User: "Name".into(),
                     Token: "Token".into()
                 })
             },
             Err(e)=>{
+                log::debug!("Failure: {:?}", e);
                 Outcome::Failure((Status::Unauthorized ,ApiKeyError::Invalid))
             }
         }

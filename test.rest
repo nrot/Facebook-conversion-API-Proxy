@@ -1,0 +1,10 @@
+@lurl = http://localhost:8000
+###
+POST {{lurl}}/fb-proxy HTTP/1.1
+Authorization: test-token
+Content-Type: application/json
+Accept: application/json
+
+{
+    "obj": "test"
+}
