@@ -4,19 +4,19 @@ extern crate rocket;
 use dotenv::dotenv;
 
 use sqlx::sqlite::SqlitePoolOptions;
-use std::{env, thread, str};
+use std::{env, str};
 use std::io::prelude::*;
 use std::fs::File;
 
 use rocket::State;
-use sqlx::{sqlite, Connection, Pool, Sqlite, SqlitePool};
+use sqlx::{Connection, Pool, Sqlite};
 
 mod api;
 mod auth;
 mod handlers;
 
 #[get("/")]
-async fn index(pool: &State<Pool<Sqlite>>) -> String {
+async fn index(_pool: &State<Pool<Sqlite>>) -> String {
     String::from("Hello world!")
 }
 
@@ -42,7 +42,7 @@ async fn main() {
 
     dbgs!(
         "Try to connect sqlite DB by url: {}",
-        db_url.as_str().clone()
+        &(db_url).clone()
     );
     let sqlite_connection = match SqlitePoolOptions::new()
         .min_connections(sqlite_min_connection)
