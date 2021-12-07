@@ -12,5 +12,7 @@ serde = "1"
 serde_json = "1" 
 rand = "0.8"
 dotenv = "0.15.0"
+chrono = "0.4"
+tokio = {version = "1.14", features=["rt", "time", "net"]}
 sqlx = {version = "0.5", features = ["runtime-actix-rustls", "sqlite", "macros", "migrate", "json"]}
 rocket = {version = "0.5.0-rc.1", features = ["json"]}

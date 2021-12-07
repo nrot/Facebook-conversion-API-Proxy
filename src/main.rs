@@ -14,6 +14,7 @@ use sqlx::{Connection, Pool, Sqlite};
 mod api;
 mod auth;
 mod handlers;
+mod elk;
 
 #[get("/")]
 async fn index(_pool: &State<Pool<Sqlite>>) -> String {
