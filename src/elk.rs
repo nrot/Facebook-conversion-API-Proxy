@@ -22,7 +22,6 @@ pub struct ElkConfig{
     timeout: u64,
     index: String,
     password: String,
-    retry: Duration
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -48,14 +47,23 @@ struct ElkMessage{
 }
 
 impl ElkConfig{
-    pub fn new(host: &dyn ToString, port: u32, timeout: Option<u64>, index: &dyn ToString, retry: Option<Duration>, password: String)->Self{
+    pub fn new(host: String, port: u32, timeout: Option<u64>, index: String, password: String)->Self{
         ElkConfig{
-            host: host.to_string(),
+            host: host,
             port: port,
             timeout: timeout.unwrap_or(0),
-            index: index.to_string(),
-            retry: retry.unwrap_or(Duration::from_secs(5)),
+            index: index,
             password: password
+        }
+    }
+
+    pub fn fake()->Self{
+        ElkConfig{
+            host: "".into(),
+            port: 0,
+            timeout: 0,
+            index: "".into(),
+            password: "".into()
         }
     }
 
@@ -74,11 +82,15 @@ impl ElkConfig{
             },
             message: msg
         };
+        if self.host.is_empty(){
+            log::info!("Fake logstash send: {:?}", dt);
+            return Ok(())
+        }
         match TcpStream::connect(format!("{}:{}", self.host, self.port)).await{
             Ok(mut connect)=>{
                 match serde_json::to_string(&dt){
                     Ok(s)=>{
-                        connect.write_all(&s.as_bytes());
+                        connect.write_all(&s.as_bytes()).await;
                         Ok(())
                     },
                     Err(_)=>{
