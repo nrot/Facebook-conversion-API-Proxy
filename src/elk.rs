@@ -9,10 +9,13 @@ use log;
 
 use chrono::{DateTime, Utc};
 
+use rocket::serde;
+
+use rocket::serde::json::Json;
 use tokio::{net::TcpStream, io::AsyncWriteExt};
 use tokio::io::AsyncWrite;
 
-use serde::{Serialize, Deserialize};
+use rocket::serde::{Serialize, Deserialize};
 use serde_json::Value;
 
 #[derive(Debug)]
@@ -106,6 +109,6 @@ impl ElkConfig{
     }
 
     pub async fn send_info(&self, msg: Value){
-        
+        self.send(msg, vec![String::from("log"), String::from("info")], "info".into());
     }
 }
