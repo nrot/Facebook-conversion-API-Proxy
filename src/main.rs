@@ -46,8 +46,8 @@ async fn main() {
         .unwrap_or("0".into())
         .parse::<u32>()
         .expect("LOGSTASH_PORT must be u32");
-    let logstash_timeout: Option<u64> = match env::var("LOGSTASH_TIMEOUT") {
-        Ok(v) => Some(v.parse::<u64>().expect("LOGSTASH_TIMEOUT must be u64")),
+    let logstash_timeout: Option<f64> = match env::var("LOGSTASH_TIMEOUT") {
+        Ok(v) => Some(v.parse::<f64>().expect("LOGSTASH_TIMEOUT must be u64")),
         Err(_) => None,
     };
 
