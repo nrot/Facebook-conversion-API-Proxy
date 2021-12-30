@@ -23,6 +23,7 @@ pub struct ElkConfig {
     timeout: f64,
     index: String,
     password: String,
+    runtime: Option<&'static tokio::runtime::Runtime>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -53,6 +54,7 @@ impl ElkConfig {
         timeout: Option<f64>,
         index: String,
         password: String,
+        runtime: &'static tokio::runtime::Runtime
     ) -> Self {
         ElkConfig {
             host: host,
@@ -60,6 +62,7 @@ impl ElkConfig {
             timeout: timeout.unwrap_or(0.0),
             index: index,
             password: password,
+            runtime: Some(runtime)
         }
     }
 
@@ -70,6 +73,7 @@ impl ElkConfig {
             timeout: 0.0,
             index: "".into(),
             password: "".into(),
+            runtime: None
         }
     }
 
@@ -94,12 +98,18 @@ impl ElkConfig {
         tokio::spawn(async move {
             match TcpStream::connect(format!("{}:{}", host, port)).await {
                 Ok(mut connect) => {
-                    // connect.set_write_timeout(time::Duration::from_secs_f64(tmo));
+                    log::debug!("Logstash connected");
                     match serde_json::to_string(&dt) {
                         Ok(s) => {
-                            tokio::time::timeout(
+                            log::debug!("Prepare data send");
+                            let _ =tokio::time::timeout(
                                 time::Duration::from_secs_f64(tmo),
-                                connect.write_all(&s.as_bytes()),
+                                async {
+                                    match connect.write_all(&s.as_bytes()).await{
+                                        Ok(_)=>{log::debug!("Data send succes")},
+                                        Err(e)=>{log::error!("Data can`t send: {:?}", e)}
+                                    }
+                                },
                             )
                             .await
                             .expect("Can`t write data to logstash");

@@ -6,5 +6,23 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    "obj": "test"
+    "event_name": "Testing",
+    "event_time": 1640848048,
+    "action_source": "website",
+    "user_data": {
+        "em": [
+            "nrot13@gmail.com"
+        ],
+        "ph": [
+        ]
+    },
+    "custom_data": {
+        "currency": "RU",
+        "value": "0"
+    },
+    "contents": [
+        {"id": "A", "quantity": 1},
+        {"id": "B", "quantity": 2},
+        {"id": "C", "quantity": 1}
+      ]
 }
